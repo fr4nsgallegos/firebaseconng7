@@ -6,6 +6,10 @@ class HomePage extends StatelessWidget {
       FirebaseFirestore.instance.collection("products");
   @override
   Widget build(BuildContext context) {
+    List<String> documentsIds = [
+      "p7uMIYSkXowky8uLOo4s",
+      "tZvGasMg6XSAJT5SQdeg"
+    ];
     return Scaffold(
       body: Center(
         child: Column(
@@ -25,6 +29,22 @@ class HomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+                productsReference
+                    .where("color", isEqualTo: "rojo")
+                    .where("price", isLessThan: 20)
+                    .get()
+                    .then((value) {
+                  QuerySnapshot productCollection = value;
+                  List<QueryDocumentSnapshot> docs = productCollection.docs;
+                  docs.forEach((element) {
+                    print(element.data());
+                  });
+                });
+              },
+              child: Text("Traer DATA FILTRADA"),
+            ),
+            ElevatedButton(
+              onPressed: () {
                 productsReference.add({
                   'nombre': 'Juan',
                   'apellido': 'Portal',
@@ -40,6 +60,33 @@ class HomePage extends StatelessWidget {
               },
               child: Text("Insertar 2"),
             ),
+            ElevatedButton(
+              onPressed: () {
+                productsReference.doc("bividis").update({
+                  "color": "Negro",
+                });
+              },
+              child: Text("Actualizar"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                productsReference.doc("bividis").delete();
+              },
+              child: Text("Eliminación"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final FirebaseFirestore firestore = FirebaseFirestore.instance;
+                await firestore.runTransaction((transaction) async {
+                  for (String docId in documentsIds) {
+                    final DocumentReference documentReference =
+                        firestore.collection("products").doc(docId);
+                    await transaction.delete(documentReference);
+                  }
+                });
+              },
+              child: Text("Eliminación múltiple"),
+            )
           ],
         ),
       ),
